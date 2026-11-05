@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "type": "hysteria2",
+      "tag": "proxy",
+      "server": "198.51.100.7",
+      "server_port": 443,
+      "password": "example-hy2-password",
+      "obfs": {
+        "type": "salamander",
+        "password": "example-obfs-password"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "vpn.example.com"
+      }
+    }
+  ]
+}

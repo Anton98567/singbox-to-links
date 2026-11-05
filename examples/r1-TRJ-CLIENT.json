@@ -1,0 +1,30 @@
+{
+  "outbounds": [
+    {
+      "type": "trojan",
+      "tag": "proxy",
+      "server": "198.51.100.7",
+      "server_port": 443,
+      "password": "example-trojan-password",
+      "multiplex": {
+        "enabled": true,
+        "padding": true
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "vpn.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/example-ws-path",
+        "headers": {
+          "Host": "vpn.example.com"
+        }
+      }
+    }
+  ]
+}

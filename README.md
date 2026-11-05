@@ -1,29 +1,86 @@
 # singbox-to-links
 
-Universal converter: **sing-box JSON config → share links** (`vless://`, `trojan://`, `vmess://`, `ss://`).
+Конвертер: **sing-box JSON-конфиги → готовые share-ссылки**
+(`vless://`, `trojan://`, `vmess://`, `ss://`, `hysteria2://`, `tuic://`, `hysteria://`).
 
-Supports single JSON files/URLs and text files with lists of URLs. Multi-user configs, WS/gRPC/HTTP transports, TLS/SNI, multiplex detection (noted in output).
+Вставляете ссылки на конфиги в файл — одной командой получаете готовые ссылки для клиентов.
+Можно вставлять целым блоком из тикета/панели: IP, порты, пароли и подписи игнорируются,
+скрипт выцепляет только `*.json`.
 
-## Usage
+## Быстрый старт (одна команда)
+
+1. Вставьте ссылки на `.json`-конфиги в файл `configs.txt`
+   (можно целиком блок из тикета):
+
+```
+192.0.2.7
+  Порт:  22 → 14834
+<SSH_PASSWORD>
+
+Пользователь r1 добавлен:
+https://vpn.example.com/secretpath/r1-TRJ-CLIENT.json
+https://vpn.example.com/secretpath/r1-VLESS-CLIENT.json
+```
+
+2. Запустите:
+
+```bash
+python3 singbox_to_links.py
+```
+
+Если `configs.txt` ещё нет — скрипт создаст его с подсказкой.
+Если файла не указывать, читается `configs.txt` из текущей папки.
+
+## Что получится
+
+- `links.txt` — готовые share-ссылки, по одной на строку (копировать / импортировать);
+- `links.md` — отчёт, сгруппированный по пользователям (`r1`, `r2`, …);
+- `sub.txt` — base64-подписка для импорта в v2rayN / Hiddify / Clash;
+- ссылки также печатаются в терминал.
+
+Комментарий ссылки собирается из имени файла конфига:
+`r1-TRJ-CLIENT.json` → `#r1-TRJ`, `r1-VLESS-CLIENT.json` → `#r1-VLESS`.
+
+Пример вывода:
+
+```
+trojan://password@host:443?security=tls&sni=host&type=ws&path=%2Fpath#r1-TRJ
+vless://uuid@host:443?encryption=none&security=tls&sni=host&type=ws&path=%2Fpath#r1-VLESS
+```
+
+## Что принимается на вход
+
+- ссылки `https://host/.../имя.json` (в том числе с query-строкой) — скачиваются по HTTP;
+- локальные файлы `*.json` (путь или имя файла рядом с `configs.txt`);
+- весь остальной текст (IP, порты, пароли, «Пользователь … добавлен:») — игнорируется;
+- строки с `#` в начале — комментарии.
+
+Поддерживаются: WS / gRPC / HTTP / HTTPUpgrade транспорты, TLS/SNI, uTLS-fingerprint,
+multi-outbound конфиги, mux (включается в ссылки как есть).
+
+## Опции
+
+- `input` — файл со ссылками (по умолчанию `configs.txt`) или один `.json` файл/URL
+- `-o, --output` — куда писать отчёт (по умолчанию `links.md`)
+- `--quiet` — не печатать ссылки в терминал, только сводку
+- `--sort` — сортировать по именам пользователей (по умолчанию — в порядке ввода)
+- `--timeout` — HTTP-таймаут, сек (по умолчанию 20)
+- `--workers` — параллельных загрузок (по умолчанию 4)
+
+Код выхода: `0` — есть ссылки, `1` — ни одной ссылки не получено.
+
+## Демо без интернета
+
+```bash
+python3 singbox_to_links.py examples/configs.txt
+```
+
+В `examples/` лежат синтетические конфиги и файл-пример «как после вставки из тикета».
+
+## Требования
 
 ```bash
 pip install requests
-python3 singbox_to_links.py all_configs.txt -o links.md --by-users
-```
-
-## Options
-
-- `input` — `.txt` with `.json` URLs, or a single `.json` file/URL
-- `-o, --output` — output file (default stdout)
-- `--by-users` — group links by user/remark
-- `--timeout` — HTTP timeout seconds
-- `--workers` — parallel downloads
-
-## Example output
-
-```
-vless://uuid@host:443?encryption=none&security=tls&sni=host&type=ws&path=%2Fpath#remark
-trojan://password@host:443?security=tls&sni=host&type=ws&path=%2Fpath#remark
 ```
 
 ## License

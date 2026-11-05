@@ -1,0 +1,19 @@
+{
+  "outbounds": [
+    {
+      "type": "tuic",
+      "tag": "proxy",
+      "server": "198.51.100.7",
+      "server_port": 2053,
+      "uuid": "11111111-2222-3333-4444-555555555555",
+      "password": "example-tuic-password",
+      "congestion_control": "bbr",
+      "udp_relay_mode": "native",
+      "tls": {
+        "enabled": true,
+        "server_name": "vpn.example.com",
+        "alpn": ["h3"]
+      }
+    }
+  ]
+}

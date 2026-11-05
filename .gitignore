@@ -1,0 +1,10 @@
+# выходные файлы (могут содержать реальные ссылки/пароли — в git не публикуются)
+/configs.txt
+/links.txt
+/links.md
+/sub.txt
+examples/links.txt
+examples/links.md
+examples/sub.txt
+__pycache__/
+*.pyc
