@@ -3,14 +3,14 @@
 Конвертер: **sing-box JSON-конфиги → готовые share-ссылки**
 (`vless://`, `trojan://`, `vmess://`, `ss://`, `hysteria2://`, `tuic://`, `hysteria://`).
 
-Вставляете ссылки на конфиги в файл — одной командой получаете готовые ссылки для клиентов.
-Можно вставлять целым блоком из тикета/панели: IP, порты, пароли и подписи игнорируются,
-скрипт выцепляет только `*.json`.
+Вставляете ссылки на конфиги в файл на любом VPS — одной командой с GitHub
+получаете готовые `vless://` / `trojan://` ссылки для клиентов.
+Можно вставлять целым блоком из тикета/панели: IP, порты, пароли и подписи игнорируются.
 
 ## Быстрый старт (одна команда)
 
 1. Вставьте ссылки на `.json`-конфиги в файл `configs.txt`
-   (можно целиком блок из тикета):
+   (можно целиком блоком из тикета):
 
 ```
 192.0.2.7
@@ -22,21 +22,36 @@ https://vpn.example.com/secretpath/r1-TRJ-CLIENT.json
 https://vpn.example.com/secretpath/r1-VLESS-CLIENT.json
 ```
 
-2. Запустите:
+2. Одна команда:
 
 ```bash
-python3 singbox_to_links.py
+curl -fsSL https://raw.githubusercontent.com/Anton98567/singbox-to-links/main/run.sh | bash
 ```
 
-Если `configs.txt` ещё нет — скрипт создаст его с подсказкой.
-Если файла не указывать, читается `configs.txt` из текущей папки.
+Готово — ссылки напечатаны в терминал. Нужен только `python3` и `curl`
+(есть на любом VPS; ничего ставить не требуется).
+
+Если `configs.txt` ещё нет — команда создаст его с подсказкой.
+Другое имя файла:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Anton98567/singbox-to-links/main/run.sh | bash -s -- мой_файл.txt
+```
+
+То же самое без обёртки (напрямую скрипт с GitHub):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Anton98567/singbox-to-links/main/singbox_to_links.py | python3 -
+```
+
+Локально: `python3 singbox_to_links.py [файл]`.
 
 ## Что получится
 
-- `links.txt` — готовые share-ссылки, по одной на строку (копировать / импортировать);
+- ссылки в терминале — сразу копировать клиенту;
+- `links.txt` — готовые share-ссылки, по одной на строку;
 - `links.md` — отчёт, сгруппированный по пользователям (`r1`, `r2`, …);
-- `sub.txt` — base64-подписка для импорта в v2rayN / Hiddify / Clash;
-- ссылки также печатаются в терминал.
+- `sub.txt` — base64-подписка для импорта в v2rayN / Hiddify / Clash.
 
 Комментарий ссылки собирается из имени файла конфига:
 `r1-TRJ-CLIENT.json` → `#r1-TRJ`, `r1-VLESS-CLIENT.json` → `#r1-VLESS`.
@@ -56,7 +71,7 @@ vless://uuid@host:443?encryption=none&security=tls&sni=host&type=ws&path=%2Fpath
 - строки с `#` в начале — комментарии.
 
 Поддерживаются: WS / gRPC / HTTP / HTTPUpgrade транспорты, TLS/SNI, uTLS-fingerprint,
-multi-outbound конфиги, mux (включается в ссылки как есть).
+multi-outbound конфиги.
 
 ## Опции
 
@@ -79,9 +94,7 @@ python3 singbox_to_links.py examples/configs.txt
 
 ## Требования
 
-```bash
-pip install requests
-```
+Только стандартная библиотека Python 3 (без `pip install`).
 
 ## License
 

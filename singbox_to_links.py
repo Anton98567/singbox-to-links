@@ -22,18 +22,13 @@ import json
 import os
 import re
 import sys
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote, urlparse
 
-try:
-    import requests
-except ImportError:
-    print("Требуется библиотека requests. Установи: pip install requests", file=sys.stderr)
-    sys.exit(1)
-
-USER_AGENT = 'singbox-to-links/2.0'
+USER_AGENT = 'singbox-to-links/2.1'
 DEFAULT_INPUT = 'configs.txt'
 
 # Ссылка вида https://host/.../имя.json (с query-строкой) ИЛИ локальный путь к *.json
@@ -59,6 +54,8 @@ PROTO_LABEL = {
     'tuic': 'TUIC',
 }
 
+RUN_CMD = 'curl -fsSL https://raw.githubusercontent.com/Anton98567/singbox-to-links/main/run.sh | bash'
+
 TEMPLATE = """# Сюда вставьте ссылки на .json-конфиги (можно целым блоком из тикета/панели).
 # Весь посторонний текст (IP, порты, пароли, подписи) игнорируется:
 # скрипт выцепляет только ссылки и файлы вида .../имя-XXX-CLIENT.json
@@ -67,8 +64,9 @@ TEMPLATE = """# Сюда вставьте ссылки на .json-конфиги
 # https://vpn.example.com/secretpath/r1-TRJ-CLIENT.json
 # https://vpn.example.com/secretpath/r1-VLESS-CLIENT.json
 #
-# Затем запустите снова:
-#   python3 singbox_to_links.py
+# Затем запустите команду снова:
+#   curl -fsSL https://raw.githubusercontent.com/Anton98567/singbox-to-links/main/run.sh | bash
+# (локально: python3 singbox_to_links.py)
 """
 
 
@@ -108,18 +106,14 @@ def load_local_or_remote(url_or_path: str, timeout: int = 20):
     p = urlparse(url_or_path)
     if p.scheme in ('http', 'https'):
         try:
-            r = requests.get(url_or_path, timeout=timeout, headers={'User-Agent': USER_AGENT})
-            r.raise_for_status()
-            try:
-                data = r.json()
-            except Exception:
-                data = json.loads(r.text)
+            req = urllib.request.Request(url_or_path, headers={'User-Agent': USER_AGENT})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                text = resp.read().decode('utf-8', 'replace')
+            data = json.loads(text)
             fname = os.path.basename(p.path) or p.netloc
             return data, None, fname
-        except requests.RequestException as e:
-            return None, f"HTTP error: {e}", url_or_path
         except Exception as e:
-            return None, f"JSON parse error: {e}", url_or_path
+            return None, f"HTTP/JSON error: {e}", url_or_path
     try:
         with open(url_or_path, 'r', encoding='utf-8', errors='replace') as f:
             data = json.loads(f.read())
@@ -545,7 +539,7 @@ def main() -> None:
             try:
                 write_file(inp, TEMPLATE)
                 print(f'Создан файл {inp} — вставьте в него ссылки на .json-конфиги и запустите:')
-                print('  python3 singbox_to_links.py')
+                print(f'  {RUN_CMD}')
                 sys.exit(0)
             except Exception as e:
                 print(f'Не удалось создать {inp}: {e}', file=sys.stderr)
